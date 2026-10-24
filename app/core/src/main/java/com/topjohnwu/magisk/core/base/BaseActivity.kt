@@ -16,13 +16,13 @@ import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts.GetContent
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import com.topjohnwu.magisk.core.R
-import com.topjohnwu.magisk.core.ktx.reflectField
 import com.topjohnwu.magisk.core.ktx.toast
 import com.topjohnwu.magisk.core.utils.RequestAuthentication
 import com.topjohnwu.magisk.core.utils.RequestInstall
 
 interface ContentResultCallback: ActivityResultCallback<Uri>, Parcelable {
     fun onActivityLaunch() {}
+    fun onActivityCancel() {}
     // Make the result type explicitly non-null
     override fun onActivityResult(result: Uri)
 }
@@ -65,6 +65,7 @@ class ActivityExtension(private val activity: ComponentActivity) {
     private var contentCallback: ContentResultCallback? = null
     private val getContent = activity.registerForActivityResult(GetContent()) {
         if (it != null) contentCallback?.onActivityResult(it)
+        else contentCallback?.onActivityCancel()
         contentCallback = null
     }
 
@@ -122,14 +123,6 @@ class ActivityExtension(private val activity: ComponentActivity) {
 
     companion object {
         private const val CONTENT_CALLBACK_KEY = "content_callback"
-    }
-}
-
-val Activity.launchPackage: String? get() {
-    return if (Build.VERSION.SDK_INT >= 34) {
-        launchedFromPackage
-    } else {
-        Activity::class.java.reflectField("mReferrer").get(this) as String?
     }
 }
 
